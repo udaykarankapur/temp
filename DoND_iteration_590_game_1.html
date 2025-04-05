@@ -1,0 +1,732 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Context</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #ffffff;
+            color: #333333;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 248, 255, 0.95));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .column {
+            flex: 1;
+            margin: 10px;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            border: 2px solid #cccccc;
+            transition: transform 0.2s;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+        .user {
+            background: rgba(235, 245, 255, 0.8); /* Very light blue */
+            border-left: 4px solid #007bff;
+        }
+        .assistant {
+            background: rgba(240, 255, 240, 0.8); /* Very light green */
+            border-right: 4px solid #28a745;
+        }
+        .role {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333333;
+        }
+        .game-info {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+        .agent-name {
+            text-align: center;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: black;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .highlight-number {
+            color: #0056b3;
+            font-weight: bold;
+        }
+        .user .role {
+            text-align: left;
+        }
+        .assistant .role {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="column alice">
+            <div class="agent-name">alice</div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>Welcome, you are participating in a multi-round negotiation game.<br>Game Description:<br>In this game, two agents will divide a collection of items over multiple rounds.<br>In each round, the available items of each category (['coins']) and their quantities will be specified. Each item category will have different utility scores for each agent.<br>The points of each agent in every round is determined by multiplying the number of items they receive by the utility score of each of their items.<br>At the end of each round, both agents must submit a finalization specifying how they wish to split the items. If the two finalizations do not match, neither agent earns points for that round.<br><br><br>Your messages must be sent in the &lt;message&gt;your-message-here&lt;/message&gt; format, with no content outside the tags. They should be concise - less than 400 characters.<br><br><br>Your finalizations must be sent in this exact format:<br>  &lt;finalize&gt; {"i_take": { "coins": x }, "other_agent_gets": { "coins": y }}&lt;/finalize&gt;, with no content outside the tags. If the second agent's finalization is not complementary to the first agent's finalization, it is equivalent to a rejection. It is paramount to follow the formatting requirements perfectly in order to submit a valid finalization.<br><br><br>In this version of the game, each round is played as follows:<br>1) One of the two agents is assigned as the starting agent.<br>2) The starting agent sends a message<br>3) The second agent sends a message<br>4) The starting agent sends a finalization<br>5) The second agent sends a finalization<br><br>Each agent can only send 1 message per round -- this is a strict rule.<br>At each round, the starting agent alternates.<br>The finalization of the starting agent will be automatically shown to the second agent.<br>However, utility scores are not shared automatically. Thus, it is recommended that each agent use their 1 message to communicate their utility scores to the other agent.<br><br><br>Your goal is to maximize your sum of points across rounds.<br><br><br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 5-5, but I'd like to propose a 7-3 split to maximize my points.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 7 }, "other_agent_gets": { "coins": 3 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 7 = 7 | Total: 7 points.<br>The other agent earned 10 per coins x 3 = 30 | Total: 30 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 5-5, but I'd like to propose a 9-1 split to maximize my points.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 9 }, "other_agent_gets": { "coins": 1 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 5-5, but I'd like to propose a 9-1 split to maximize my points.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 1 }, "other_agent_gets": { "coins": 9 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 9 }, "other_agent_gets": { "coins": 1 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 1 }, "other_agent_gets": { "coins": 9 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 9 }, "other_agent_gets": { "coins": 1 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 1 }, "other_agent_gets": { "coins": 9 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 9 }, "other_agent_gets": { "coins": 1 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 1 }, "other_agent_gets": { "coins": 9 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 9 }, "other_agent_gets": { "coins": 1 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 1 }, "other_agent_gets": { "coins": 9 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 9 }, "other_agent_gets": { "coins": 1 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 1 }, "other_agent_gets": { "coins": 9 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 9 }, "other_agent_gets": { "coins": 1 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 1 }, "other_agent_gets": { "coins": 9 }}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": { "coins": 9 }, "other_agent_gets": { "coins": 1 }}&lt;/finalize&gt;</p>
+        </div>
+
+        </div>
+
+        <div class="column bob">
+            <div class="agent-name">bob</div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>Welcome, you are participating in a multi-round negotiation game.<br>Game Description:<br>In this game, two agents will divide a collection of items over multiple rounds.<br>In each round, the available items of each category (['coins']) and their quantities will be specified. Each item category will have different utility scores for each agent.<br>The points of each agent in every round is determined by multiplying the number of items they receive by the utility score of each of their items.<br>At the end of each round, both agents must submit a finalization specifying how they wish to split the items. If the two finalizations do not match, neither agent earns points for that round.<br><br><br>Your messages must be sent in the &lt;message&gt;your-message-here&lt;/message&gt; format, with no content outside the tags. They should be concise - less than 400 characters.<br><br><br>Your finalizations must be sent in this exact format:<br>  &lt;finalize&gt; {"i_take": { "coins": x }, "other_agent_gets": { "coins": y }}&lt;/finalize&gt;, with no content outside the tags. If the second agent's finalization is not complementary to the first agent's finalization, it is equivalent to a rejection. It is paramount to follow the formatting requirements perfectly in order to submit a valid finalization.<br><br><br>In this version of the game, each round is played as follows:<br>1) One of the two agents is assigned as the starting agent.<br>2) The starting agent sends a message<br>3) The second agent sends a message<br>4) The starting agent sends a finalization<br>5) The second agent sends a finalization<br><br>Each agent can only send 1 message per round -- this is a strict rule.<br>At each round, the starting agent alternates.<br>The finalization of the starting agent will be automatically shown to the second agent.<br>However, utility scores are not shared automatically. Thus, it is recommended that each agent use their 1 message to communicate their utility scores to the other agent.<br><br><br>Your goal is to maximize your sum of points across rounds.<br><br><br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 5-5, but I'd like to propose a 7-3 split to maximize my points.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 7}, 'other_agent_gets': {'coins': 3}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 3}, "other_agent_gets": {"coins": 7}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 3 = 30 | Total: 30 points.<br>The other agent earned 1 per coins x 7 = 7 | Total: 7 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 5-5, but I'd like to propose a 9-1 split to maximize my points.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 1}, "other_agent_gets": {"coins": 9}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 5-5, but I'd like to propose a 9-1 split to maximize my points.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 9}, "other_agent_gets": {"coins": 1}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 1}, "other_agent_gets": {"coins": 9}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 9}, "other_agent_gets": {"coins": 1}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 1}, "other_agent_gets": {"coins": 9}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 9}, "other_agent_gets": {"coins": 1}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 1}, "other_agent_gets": {"coins": 9}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 9}, "other_agent_gets": {"coins": 1}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 1}, "other_agent_gets": {"coins": 9}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 9}, "other_agent_gets": {"coins": 1}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 1}, "other_agent_gets": {"coins": 9}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 9}, "other_agent_gets": {"coins": 1}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 1}, "other_agent_gets": {"coins": 9}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 1 per coins x 1 = 1 | Total: 1 points.<br>The other agent earned 10 per coins x 9 = 90 | Total: 90 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 10}.<br>The other agent sent the following message: "My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.".<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent has finalized: {'i_take': {'coins': 1}, 'other_agent_gets': {'coins': 9}}. You must accept or reject now.<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 9}, "other_agent_gets": {"coins": 1}}&lt;/finalize&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The previous round has ended.<br>In the last round, you earned 10 per coins x 9 = 90 | Total: 90 points.<br>The other agent earned 1 per coins x 1 = 1 | Total: 1 points.<br>For this new round, the items available are {'coins': 10} and your utility scores for each item category are {'coins': 1}.<br>You are the starting agent.<br><br><br>(You must send a message now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;message&gt;My utility scores are {'coins': 1}. I'm willing to split the coins 5-5.&lt;/message&gt;</p>
+        </div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p>The other agent sent the following message: "My utility scores are {'coins': 10}. I'm willing to split the coins 9-1.".<br><br><br>(You must finalize now in the aforementioned format.)<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 1}, "other_agent_gets": {"coins": 9}}&lt;/finalize&gt;</p>
+        </div>
+
+        </div>
+
+    </div>
+</body>
+</html>
