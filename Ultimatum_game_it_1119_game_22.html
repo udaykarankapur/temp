@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Context</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #ffffff;
+            color: #333333;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 248, 255, 0.95));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .column {
+            flex: 1;
+            margin: 10px;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            border: 2px solid #cccccc;
+            transition: transform 0.2s;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+        .user {
+            background: rgba(235, 245, 255, 0.8); /* Very light blue */
+            border-left: 4px solid #007bff;
+        }
+        .assistant {
+            background: rgba(240, 255, 240, 0.8); /* Very light green */
+            border-right: 4px solid #28a745;
+        }
+        .role {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333333;
+        }
+        .round-divider {
+            text-align: center;
+            font-weight: bold;
+            color: #666;
+            margin: 10px 0;
+            border-top: 2px dashed #ccc;
+            padding-top: 5px;
+        }
+        .game-info {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+        .agent-name {
+            text-align: center;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: black;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .highlight-number {
+            color: #0056b3;
+            font-weight: bold;
+        }
+        .user .role {
+            text-align: left;
+        }
+        .assistant .role {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="column alice">
+            <div class="agent-name">alice</div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p><br>Welcome to the Splitting Game.<br><br>Game Overview:<br><br>  1) Two agents divide 10 coins.<br><br>  2) Each agent proposes a division of the coins.<br><br>  3) Both agents must agree on a division to receive the coins. If not, both receive zero coins.<br><br>  4) The game is played only once.<br><br>Response Format:<br><br>  1) Responses must be within &lt;finalize&gt; &lt;/finalize&gt; tags.<br><br>  2) Use JSON format: &lt;finalize&gt; {"i_take": {"coins": x}, "other_agent_gets": {"coins": y}} &lt;/finalize&gt;.<br><br><br>Goal: Aim to be fair with both the other agent and yourself.<br>You are the first agent. It is your turn to play.</p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (alice) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 7}, "other_agent_gets": {"coins": 3}} &lt;/finalize&gt;</p>
+        </div>
+
+        </div>
+
+        <div class="column bob">
+            <div class="agent-name">bob</div>
+
+        <div class="message user">
+            <div class="role">Intermediary ⚙️</div>
+            <p><br>Welcome to the Splitting Game.<br><br>Game Overview:<br><br>  1) Two agents divide 10 coins.<br><br>  2) Each agent proposes a division of the coins.<br><br>  3) Both agents must agree on a division to receive the coins. If not, both receive zero coins.<br><br>  4) The game is played only once.<br><br>Response Format:<br><br>  1) Responses must be within &lt;finalize&gt; &lt;/finalize&gt; tags.<br><br>  2) Use JSON format: &lt;finalize&gt; {"i_take": {"coins": x}, "other_agent_gets": {"coins": y}} &lt;/finalize&gt;.<br><br><br>Goal: Aim to be fair with both the other agent and yourself.<br>The other agent's finalization was {'i_take': {'coins': 7}, 'other_agent_gets': {'coins': 3}}.<br>You are the second agent. It is your turn to play.<br></p>
+        </div>
+
+        <div class="message assistant">
+            <div class="role">LLM (bob) 🤖</div>
+            <p>&lt;finalize&gt; {"i_take": {"coins": 3}, "other_agent_gets": {"coins": 7}} &lt;/finalize&gt;</p>
+        </div>
+
+        </div>
+
+    </div>
+</body>
+</html>
